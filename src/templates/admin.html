@@ -1,0 +1,91 @@
+<head>
+  ...
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#signupsTable').DataTable({
+        "columnDefs": [
+            { "orderable": false, "targets": -1 } // disable sort for delete
+        ]
+        });
+    });
+
+    
+    </script>
+</head>
+<body>
+<div class="container mt-5">
+  <h2 class="mb-4">📋 Tournament Signups</h2>
+
+  <!-- Filter Form -->
+  <form method="POST" class="bg-secondary p-3 rounded mb-3">
+    <div class="row">
+      <div class="col-md-3">
+        <label class="form-label">Player Range</label>
+        <select name="player_range" class="form-select">
+          <option value="all">All</option>
+          <option value="8">8 Players</option>
+          <option value="16">16 Players</option>
+          <option value="32">32 Players</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" name="start_date" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">End Date</label>
+        <input type="date" name="end_date" class="form-control">
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-light w-100">Filter</button>
+      </div>
+    </div>
+  </form>
+
+    <!-- Export Buttons -->
+  <div class="mb-3">
+    <a href="/export/csv" class="btn btn-success">⬇ Download CSV</a>
+    <a href="/export/excel" class="btn btn-primary">⬇ Download Excel</a>
+  </div>
+
+  <!-- Signups Table -->
+<table id="signupsTable" class="table table-striped table-dark table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>First</th>
+      <th>Last</th>
+      <th>Email</th>
+      <th>Player Range</th>
+      <th>Pool Bar</th>
+      <th>Signup Date</th>
+      <th>Tourney Date</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for row in signups %}
+  <tr>
+    <td>{{ row[0] }}</td> <!-- ID -->
+    <td>{{ row[1] }}</td> <!-- First Name -->
+    <td>{{ row[2] }}</td> <!-- Last Name -->
+    <td>{{ row[3] }}</td> <!-- Email -->
+    <td>{{ row[4] }}</td> <!-- Player Range -->
+    <td>{{ row[6] }}</td> <!-- Pool Bar (was row[5]) -->
+    <td>{{ row[5] }}</td> <!-- Signup Date (was row[6]) -->
+    <td>{{ row[7] }}</td> <!-- Tourney Date -->
+    <td>
+      <form action="/delete/{{ row[0] }}" method="POST" onsubmit="return confirm('Delete this entry?')">
+        <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+</div>
+</body>
