@@ -1,3 +1,4 @@
+# Library Imports
 from flask import Flask, make_response, render_template, request, redirect, url_for, Response, send_file
 import sqlite3
 from datetime import datetime
@@ -8,8 +9,10 @@ import xlsxwriter
 import pandas as pd
 from io import BytesIO, StringIO
 
+# Initialize Flask app
 app = Flask(__name__)
 
+# --- Database Initialization ---
 DB_PATH = "tourney.db"  # adjust to your DB path
 
 # Database setup
@@ -39,10 +42,12 @@ def init_db():
 
 init_db()
 
+# --- Home Page ---
 @app.route("/")
 def index():
     return render_template("index.html")
 
+# --- Signup Page ---
 @app.route("/signup", methods=["POST"])
 def signup():
     first_name = request.form["first_name"]
@@ -79,6 +84,7 @@ def signup():
     return redirect(url_for("success"))
 
 
+# --- Success Page ---
 @app.route("/success")
 def success():
     return render_template("success.html")
@@ -155,35 +161,6 @@ def export_csv():
     return response
 
 # --- Export to Excel ---
-'''
-@app.route("/export_excel")
-def export_excel():
-    conn = sqlite3.connect("tourney.db")
-    c = conn.cursor()
-    c.execute("SELECT * FROM signups ORDER BY signup_date DESC")
-    rows = c.fetchall()
-    conn.close()
-
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Signups"
-
-    # Header row
-    headers = ["ID", "First Name", "Last Name", "Email", "Player Range", "Signup Date"]
-    ws.append(headers)
-
-    # Data rows
-    for row in rows:
-        ws.append(row)
-
-    # Save to memory
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    return send_file(output, as_attachment=True, download_name="signups.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-'''
-
 @app.route("/export/excel")
 def export_excel():
     conn = sqlite3.connect("tourney.db")
