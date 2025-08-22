@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pool Tourney Signup</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    />
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const dateInput = document.getElementById("signup_date");
+        const barSelect = document.getElementById("pool_bar");
+
+        // Prevent past or today’s date
+        const today = new Date();
+        today.setDate(today.getDate() + 1); // start tomorrow
+        dateInput.min = today.toISOString().split("T")[0];
+
+        const weekdayNames = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+
+        // Map bars to required weekdays
+        const barDays = {
+          "The Less Dead": 1, // Monday
+          Propaganda: 4, // Thursday
+          "Ontario Bar": 5, // Friday
+          "Bushwick Icehouse": 0, // Sunday
+        };
+
+        dateInput.addEventListener("change", () => {
+          const selectedBar = barSelect.value;
+          const selectedDate = new Date(dateInput.value);
+          const weekday = selectedDate.getUTCDay();
+
+          if (barDays[selectedBar] !== weekday) {
+            alert(
+              `${selectedBar} only allows signups on ${
+                weekdayNames[barDays[selectedBar]]
+              }!`
+            );
+            dateInput.value = ""; // reset invalid selection
+          }
+        });
+
+        const barValidDays = {
+          "The Less Dead": 1, // Monday
+          Propaganda: 4, // Thursday
+          "Ontario Bar": 5, // Friday
+          "Bushwick Icehouse": 0, // Sunday
+        };
+
+        barSelect.addEventListener("change", () => {
+          const selectedBar = barSelect.value;
+          const validDay = barValidDays[selectedBar];
+
+          // Reset date input
+          dateInput.value = "";
+
+          // Set min date to tomorrow
+          const today = new Date();
+          today.setDate(today.getDate() + 1);
+          dateInput.min = today.toISOString().split("T")[0];
+
+          // Disable all invalid dates in calendar
+          dateInput.addEventListener("input", () => {
+            const chosenDate = new Date(dateInput.value);
+            if (chosenDate.getUTCDay() !== validDay) {
+              alert(
+                `${selectedBar} only allows signups on ${weekdayNames[validDay]}!`
+              );
+              dateInput.value = "";
+            }
+          });
+        });
+      });
+    </script>
+  </head>
+  <body class="container mt-4">
+    <h2>Pool Tournament Signup</h2>
+    <form action="/signup" method="post" class="card p-3">
+      <label>First Name</label>
+      <input type="text" name="first_name" required class="form-control" />
+
+      <label>Last Name</label>
+      <input type="text" name="last_name" required class="form-control" />
+
+      <label>Email</label>
+      <input type="email" name="email" required class="form-control" />
+
+      <label>Player Range</label>
+      <select name="player_range" class="form-select">
+        <option value="8">8 Players</option>
+        <option value="16">16 Players</option>
+        <option value="32">32 Players</option>
+      </select>
+
+      <label>Pool Bar</label>
+      <select name="pool_bar" id="pool_bar" class="form-select">
+        <option value="The Less Dead">The Less Dead - Monday</option>
+        <option value="Propaganda">Propaganda - Thursday</option>
+        <option value="Ontario Bar">Ontario Bar - Friday</option>
+        <option value="Bushwick Icehouse">Bushwick Icehouse - Sunday</option>
+      </select>
+
+      <label>Tourney Date</label>
+      <input
+        type="date"
+        name="signup_date"
+        id="signup_date"
+        required
+        class="form-control"
+      />
+
+      <button type="submit" class="btn btn-primary mt-3">Sign Up</button>
+    </form>
+  </body>
+</html>
