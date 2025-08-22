@@ -40,3 +40,15 @@ Fri Aug 22 2:30AM
 * CSV export aligns perfectly with the table.
 * Excel export aligns perfectly with the table.
 * No more misalignment between **Pool Bar** and  **Tourney Date** .
+
+✅ Second Commit (second-commit - fixed column issue for csv and excel downloads)
+
+1. Fixed column issue with generating csv file from tourney entries (app.py)
+2. Fixed column issue with generating excel file from tourney entries (app.py)
+3. Fixed seeding of the database (seed.sh)
+4. Added styling to admin page for better look & feel
+5. Added shell script that downloads dependencies and runs the python application from terminal (run_app.sh)
+   - flask
+   - openpyxl
+   - xlsxwriter
+   - pandas
