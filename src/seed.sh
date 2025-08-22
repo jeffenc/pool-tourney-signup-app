@@ -193,3 +193,4 @@ for i in {1..20}; do
 done
 
 echo "✅ Seeded 20 mock signups into $DB with correct days + future dates"
+
