@@ -5,8 +5,12 @@ import csv
 import io
 import openpyxl
 import xlsxwriter
+import pandas as pd
+from io import BytesIO, StringIO
 
 app = Flask(__name__)
+
+DB_PATH = "tourney.db"  # adjust to your DB path
 
 # Database setup
 def init_db():
@@ -20,7 +24,8 @@ def init_db():
             email TEXT NOT NULL,
             player_range INTEGER NOT NULL,
             pool_bar TEXT NOT NULL,
-            signup_date TEXT NOT NULL
+            signup_date TEXT NOT NULL,
+            tourney_date TEXT DEFAULT NULL
         )
     """)
     # ensure "pool_bar" exists if upgrading
@@ -84,7 +89,8 @@ def admin():
     conn = sqlite3.connect("tourney.db")
     c = conn.cursor()
 
-    query = "SELECT * FROM signups WHERE 1=1"
+   # query = "SELECT * FROM signups WHERE 1=1"
+    query = "SELECT id, first_name, last_name, email, player_range, signup_date, pool_bar FROM signups WHERE 1=1"
     params = []
 
     player_range = None
@@ -133,14 +139,14 @@ def export_csv():
     c = conn.cursor()
     # Select explicitly in correct order
     # c.execute("SELECT id, first_name, last_name, email, player_range, pool_bar, signup_date, tourney_date FROM signups ORDER BY signup_date DESC")
-    c.execute("SELECT id, first_name, last_name, email, player_range, signup_date, pool_bar, tourney_date FROM signups ORDER BY signup_date DESC")
+    c.execute("SELECT id, first_name, last_name, email, player_range, signup_date, pool_bar FROM signups ORDER BY signup_date DESC")
 
     rows = c.fetchall()
     conn.close()
 
     output = io.StringIO()
     writer = csv.writer(output)
-    headers = ["ID","First Name","Last Name","Email","Player Range","Pool Bar","Signup Date","Tourney Date"]
+    headers = ["ID","First Name","Last Name","Email","Player Range","Tourney Date","Pool Bar"]
     writer.writerow(headers)
     writer.writerows(rows)
 
@@ -183,7 +189,7 @@ def export_excel():
     conn = sqlite3.connect("tourney.db")
     c = conn.cursor()
     # c.execute("SELECT id, first_name, last_name, email, player_range, pool_bar, signup_date, tourney_date FROM signups ORDER BY signup_date DESC")
-    c.execute("SELECT id, first_name, last_name, email, player_range, signup_date, pool_bar, tourney_date FROM signups ORDER BY signup_date DESC")
+    c.execute("SELECT id, first_name, last_name, email, player_range, signup_date, pool_bar FROM signups ORDER BY signup_date DESC")
 
     rows = c.fetchall()
     conn.close()
@@ -192,7 +198,7 @@ def export_excel():
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
 
-    headers = ["ID","First Name","Last Name","Email","Player Range","Pool Bar","Signup Date","Tourney Date"]
+    headers = ["ID","First Name","Last Name","Email","Player Range","Tourney Date", "Pool Bar"]
     for col, header in enumerate(headers):
         worksheet.write(0, col, header)
 
@@ -206,6 +212,105 @@ def export_excel():
     return send_file(output, as_attachment=True,
                      download_name="signups.xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+# old version of get_signups function
+# def get_signups():
+#     conn = sqlite3.connect(DB_PATH)
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT * FROM signups")
+#     rows = cursor.fetchall()
+#     conn.close()
+#     return rows
+
+# New version of get_signups function
+def get_signups():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # Be explicit about which columns to select to match the DataFrame columns
+    cursor.execute("SELECT id, first_name, last_name, email, player_range, pool_bar, signup_date FROM signups ORDER BY signup_date DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+# old version of download_csv function
+# @app.route("/download_csv")
+# def download_csv():
+#     rows = get_signups()
+#     df = pd.DataFrame(rows, columns=[
+#         "ID", "First", "Last", "Email", "Player Range",
+#         "Pool Bar", "Tourney Date"
+#     ])
+
+#     csv_buffer = StringIO()
+#     df.to_csv(csv_buffer, index=False)
+
+#     return send_file(
+#         BytesIO(csv_buffer.getvalue().encode("utf-8")),
+#         mimetype="text/csv",
+#         as_attachment=True,
+#         download_name="tournament_signups.csv"
+#     )
+
+# New version of download_csv function
+@app.route("/download_csv")
+def download_csv():
+    rows = get_signups()
+    df = pd.DataFrame(rows, columns=[
+        "ID", "First Name", "Last Name", "Email", "Player Range",
+        "Pool Bar", "Signup Date"
+    ])
+
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False)
+
+    return send_file(
+        BytesIO(csv_buffer.getvalue().encode("utf-8")),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name="tournament_signups.csv"
+    )
+
+# old version of download_excel function
+# @app.route("/download_excel")
+# def download_excel():
+#     rows = get_signups()
+#     df = pd.DataFrame(rows, columns=[
+#         "ID", "First", "Last", "Email", "Player Range",
+#          "Pool Bar", "Tourney Date"
+#     ])
+
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine="openpyxl") as writer:
+#         df.to_excel(writer, index=False, sheet_name="Signups")
+
+#     output.seek(0)
+#     return send_file(
+#         output,
+#         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#         as_attachment=True,
+#         download_name="tournament_signups.xlsx"
+#     )
+
+# new version of download_excel function
+@app.route("/download_excel")
+def download_excel():
+    rows = get_signups()
+    df = pd.DataFrame(rows, columns=[
+        "ID", "First Name", "Last Name", "Email", "Player Range",
+        "Pool Bar", "Signup Date"
+    ])
+
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Signups")
+
+    output.seek(0)
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="tournament_signups.xlsx"
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
